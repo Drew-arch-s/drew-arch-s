@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pengelola Jadwal</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* Dasar tipografi dan tema gelap */
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #0B0F19;
+      color: #F8FAFC;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Native date & time picker menyesuaikan tema gelap */
+    input[type="date"],
+    input[type="time"] {
+      color-scheme: dark;
+    }
+
+    /* Animasi transisi halus untuk kartu dan modal */
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.99);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .animate-modal-in {
+      animation: fadeSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .animate-card-in {
+      animation: fadeSlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#0B0F19] text-[#F8FAFC] flex flex-col selection:bg-[#7873F5]/30 selection:text-white">
+
+  <!-- ===================================================================== -->
+  <!-- TOP NAVIGATION BAR                                                    -->
+  <!-- ===================================================================== -->
+  <header class="w-full border-b border-[#1A2133] bg-[#0B0F19]/90 backdrop-blur-md sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <!-- Brand Title: Jadwal. -->
+      <a
+        href="#top"
+        onclick="event.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' });"
+        class="inline-flex items-baseline text-[19px] font-bold tracking-tight text-[#F8FAFC] select-none"
+      >
+        <span>Jadwal</span><span class="text-[#7873F5]">.</span>
+      </a>
+
+      <!-- Right Controls: User Profile & Keluar (C++ Menu 5: Exit) -->
+      <div class="flex items-center gap-3 sm:gap-5">
+        <button
+          id="btn-edit-user"
+          type="button"
+          title="Klik untuk mengubah nama pengguna"
+          class="inline-flex items-center gap-2 text-xs sm:text-[13px] font-medium text-[#94A3B8] hover:text-[#F8FAFC] transition-colors py-1.5 px-2.5 rounded-lg hover:bg-[#141927] cursor-pointer"
+        >
+          <span id="display-user-name" class="truncate max-w-[150px] sm:max-w-none">Andrew Pramadana Riadi</span>
+          <!-- User Outline Icon -->
+          <svg class="w-4 h-4 text-[#94A3B8] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </button>
+
+        <button
+          id="btn-exit"
+          type="button"
+          class="inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-[#94A3B8] hover:text-[#F8FAFC] transition-colors py-1.5 px-2.5 rounded-lg hover:bg-[#141927] cursor-pointer"
+        >
+          <!-- Logout Icon -->
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span>Keluar</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN DASHBOARD CONTAINER                                              -->
+  <!-- ===================================================================== -->
+  <main class="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-9 sm:pt-12 pb-16">
+
+    <!-- Hero Header Section -->
+    <section class="mb-8">
+      <!-- Top-Left Date Pill Badge -->
+      <div class="mb-4">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#121724] border border-[#1F273B] text-xs font-medium text-[#94A3B8]">
+          <svg class="w-3.5 h-3.5 text-[#94A3B8] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span id="current-date-pill">Kamis, 19 November 2026</span>
+        </div>
+      </div>
+
+      <!-- Main Bold Heading -->
+      <h1 class="text-3xl sm:text-[38px] font-bold text-[#F8FAFC] tracking-tight leading-tight">
+        Pengelola Jadwal
+      </h1>
+
+      <!-- Flex Row Below Heading: Subtitle + Primary CTA Button -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2.5">
+        <p class="text-sm sm:text-[15px] text-[#94A3B8] max-w-[460px] leading-relaxed">
+          Simpan kegiatanmu sekali, dan daftar ini langsung rapi — terurut tanggal lalu prioritas.
+        </p>
+
+        <!-- Primary CTA Button (C++ Menu 1: Add Schedule) -->
+        <button
+          id="btn-open-add"
+          type="button"
+          class="bg-[#7873F5] hover:bg-[#6761EE] active:scale-[0.99] text-[#0B0F19] font-bold text-sm px-5 py-2.5 rounded-lg inline-flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#7873F5]/15 shrink-0 cursor-pointer"
+        >
+          <svg class="w-4 h-4 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          <span>Tambah Jadwal</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 4 Summary Metric Cards -->
+    <section aria-label="Ringkasan Kegiatan" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      <!-- Card 1: Total Kegiatan -->
+      <div class="bg-[#141927] border border-[#1F273B] rounded-xl p-5 flex flex-col justify-between min-h-[104px] transition-colors hover:border-[#2C3754]">
+        <div class="flex items-center gap-2 text-[11px] font-semibold tracking-wider uppercase text-[#94A3B8]">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#7873F5] shrink-0"></span>
+          <span>TOTAL KEGIATAN</span>
+        </div>
+        <div id="metric-total" class="text-[30px] sm:text-[32px] font-bold text-[#7873F5] leading-none mt-3">
+          0
+        </div>
+      </div>
+
+      <!-- Card 2: Prioritas Tinggi -->
+      <div class="bg-[#141927] border border-[#1F273B] rounded-xl p-5 flex flex-col justify-between min-h-[104px] transition-colors hover:border-[#2C3754]">
+        <div class="flex items-center gap-2 text-[11px] font-semibold tracking-wider uppercase text-[#94A3B8]">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#EF4444] shrink-0"></span>
+          <span>PRIORITAS TINGGI</span>
+        </div>
+        <div id="metric-high" class="text-[30px] sm:text-[32px] font-bold text-[#EF4444] leading-none mt-3">
+          0
+        </div>
+      </div>
+
+      <!-- Card 3: Prioritas Sedang -->
+      <div class="bg-[#141927] border border-[#1F273B] rounded-xl p-5 flex flex-col justify-between min-h-[104px] transition-colors hover:border-[#2C3754]">
+        <div class="flex items-center gap-2 text-[11px] font-semibold tracking-wider uppercase text-[#94A3B8]">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#F59E0B] shrink-0"></span>
+          <span>PRIORITAS SEDANG</span>
+        </div>
+        <div id="metric-medium" class="text-[30px] sm:text-[32px] font-bold text-[#F59E0B] leading-none mt-3">
+          0
+        </div>
+      </div>
+
+      <!-- Card 4: Prioritas Rendah -->
+      <div class="bg-[#141927] border border-[#1F273B] rounded-xl p-5 flex flex-col justify-between min-h-[104px] transition-colors hover:border-[#2C3754]">
+        <div class="flex items-center gap-2 text-[11px] font-semibold tracking-wider uppercase text-[#94A3B8]">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#10B981] shrink-0"></span>
+          <span>PRIORITAS RENDAH</span>
+        </div>
+        <div id="metric-low" class="text-[30px] sm:text-[32px] font-bold text-[#10B981] leading-none mt-3">
+          0
+        </div>
+      </div>
+    </section>
+
+    <!-- Daftar Kegiatan Section (C++ Menu 2: View Schedule) -->
+    <section aria-label="Daftar Kegiatan">
+      <!-- Header Row -->
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-[18px] font-bold text-[#F8FAFC]">Daftar Kegiatan</h2>
+        <span id="schedule-count-label" class="text-[13px] text-[#94A3B8]">0 kegiatan</span>
+      </div>
+
+      <!-- Schedule Card Grid -->
+      <div id="schedule-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Kartu jadwal dirender secara dinamis melalui JavaScript -->
+      </div>
+
+      <!-- Empty State (saat daftar_jadwal.empty() di C++) -->
+      <div
+        id="empty-state"
+        class="hidden bg-[#141927] border border-[#1F273B] rounded-xl py-14 px-6 text-center"
+      >
+        <div class="w-12 h-12 rounded-full bg-[#0B0F19] border border-[#1F273B] flex items-center justify-center mx-auto mb-4 text-[#7873F5]">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+        <h3 class="text-base font-semibold text-[#F8FAFC]">Daftar jadwal masih kosong.</h3>
+        <p class="text-xs sm:text-sm text-[#94A3B8] mt-1.5 max-w-sm mx-auto">
+          Tambahkan jadwal baru agar otomatis tersusun rapi berdasarkan tanggal dan prioritas.
+        </p>
+        <button
+          type="button"
+          onclick="openScheduleModal('add')"
+          class="mt-5 bg-[#7873F5] hover:bg-[#6761EE] text-[#0B0F19] font-bold text-xs sm:text-sm px-4 py-2.5 rounded-lg inline-flex items-center gap-2 transition cursor-pointer"
+        >
+          <svg class="w-4 h-4 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          <span>Tambah Jadwal</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: ADD / EDIT SCHEDULE (C++ Menu 1 & Menu 3)                      -->
+  <!-- ===================================================================== -->
+  <div
+    id="schedule-modal"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-[#060911]/80 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+  >
+    <div class="bg-[#141927] border border-[#1F273B] rounded-xl w-full max-w-md p-6 shadow-2xl animate-modal-in">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-[#1F273B]">
+        <div>
+          <h3 id="modal-title" class="text-lg font-bold text-[#F8FAFC]">Tambah Jadwal</h3>
+          <p id="modal-subtitle" class="text-xs text-[#94A3B8] mt-0.5">
+            Daftar otomatis diurutkan berdasarkan tanggal lalu prioritas.
+          </p>
+        </div>
+        <button
+          type="button"
+          onclick="closeScheduleModal()"
+          aria-label="Tutup modal"
+          class="p-1.5 rounded-lg text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1F273B] transition cursor-pointer"
+        >
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Schedule Form -->
+      <form id="schedule-form" class="mt-5 space-y-4" novalidate>
+        <input type="hidden" id="form-schedule-id" />
+
+        <!-- Nama Kegiatan -->
+        <div>
+          <label for="input-nama" class="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+            Nama Kegiatan
+          </label>
+          <input
+            id="input-nama"
+            type="text"
+            placeholder="Contoh: Rapat 1"
+            class="w-full bg-[#0B0F19] border border-[#1F273B] focus:border-[#7873F5] focus:ring-2 focus:ring-[#7873F5]/25 rounded-lg px-3.5 py-2.5 text-sm text-[#F8FAFC] placeholder-[#525E7A] outline-none transition"
+          />
+          <p id="error-nama" class="hidden text-xs text-[#EF4444] mt-1.5">Nama kegiatan wajib diisi.</p>
+        </div>
+
+        <!-- Tanggal (YYYY-MM-DD) & Waktu (HH:MM) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label for="input-tanggal" class="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+              Tanggal (YYYY-MM-DD)
+            </label>
+            <input
+              id="input-tanggal"
+              type="date"
+              class="w-full bg-[#0B0F19] border border-[#1F273B] focus:border-[#7873F5] focus:ring-2 focus:ring-[#7873F5]/25 rounded-lg px-3.5 py-2.5 text-sm text-[#F8FAFC] outline-none transition"
+            />
+            <p id="error-tanggal" class="hidden text-xs text-[#EF4444] mt-1.5">Tanggal wajib dipilih.</p>
+          </div>
+
+          <div>
+            <label for="input-waktu" class="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+              Waktu (HH:MM)
+            </label>
+            <input
+              id="input-waktu"
+              type="time"
+              class="w-full bg-[#0B0F19] border border-[#1F273B] focus:border-[#7873F5] focus:ring-2 focus:ring-[#7873F5]/25 rounded-lg px-3.5 py-2.5 text-sm text-[#F8FAFC] outline-none transition"
+            />
+            <p id="error-waktu" class="hidden text-xs text-[#EF4444] mt-1.5">Waktu wajib diisi.</p>
+          </div>
+        </div>
+
+        <!-- Prioritas -->
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+            Prioritas
+          </label>
+          <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Pilih Prioritas">
+            <button
+              type="button"
+              data-priority="1 - Tinggi"
+              onclick="selectPriority('1 - Tinggi')"
+              class="priority-option py-2.5 px-2 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-[#EF4444]"></span>
+              <span>1 - Tinggi</span>
+            </button>
+            <button
+              type="button"
+              data-priority="2 - Sedang"
+              onclick="selectPriority('2 - Sedang')"
+              class="priority-option py-2.5 px-2 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-[#F59E0B]"></span>
+              <span>2 - Sedang</span>
+            </button>
+            <button
+              type="button"
+              data-priority="3 - Rendah"
+              onclick="selectPriority('3 - Rendah')"
+              class="priority-option py-2.5 px-2 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+              <span>3 - Rendah</span>
+            </button>
+          </div>
+          <input type="hidden" id="input-prioritas" value="1 - Tinggi" />
+        </div>
+
+        <!-- Form Buttons -->
+        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#1F273B]">
+          <button
+            type="button"
+            onclick="closeScheduleModal()"
+            class="px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1F273B] transition cursor-pointer"
+          >
+            Batal
+          </button>
+          <button
+            id="btn-submit-schedule"
+            type="submit"
+            class="px-5 py-2.5 rounded-lg text-xs sm:text-sm font-bold bg-[#7873F5] hover:bg-[#6761EE] text-[#0B0F19] transition shadow-md shadow-[#7873F5]/15 cursor-pointer"
+          >
+            Simpan Jadwal
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: DELETE CONFIRMATION (C++ Menu 4: Delete Schedule)              -->
+  <!-- ===================================================================== -->
+  <div
+    id="delete-modal"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-[#060911]/80 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="delete-modal-title"
+  >
+    <div class="bg-[#141927] border border-[#1F273B] rounded-xl w-full max-w-sm p-6 shadow-2xl animate-modal-in">
+      <div class="w-11 h-11 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/25 flex items-center justify-center text-[#EF4444] mb-4">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          <line x1="10" y1="11" x2="10" y2="17" />
+          <line x1="14" y1="11" x2="14" y2="17" />
+        </svg>
+      </div>
+      <h3 id="delete-modal-title" class="text-base font-bold text-[#F8FAFC]">Hapus Jadwal?</h3>
+      <p class="text-xs sm:text-sm text-[#94A3B8] mt-1.5 leading-relaxed">
+        Apakah Anda yakin ingin menghapus kegiatan <span id="delete-target-name" class="text-[#F8FAFC] font-semibold"></span>? Tindakan ini tidak dapat dibatalkan.
+      </p>
+
+      <div class="flex items-center justify-end gap-2.5 mt-6">
+        <button
+          type="button"
+          onclick="closeDeleteModal()"
+          class="px-4 py-2 rounded-lg text-xs sm:text-sm font-medium text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1F273B] transition cursor-pointer"
+        >
+          Batal
+        </button>
+        <button
+          id="btn-confirm-delete"
+          type="button"
+          class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-[#EF4444] hover:bg-[#DC2626] text-white transition cursor-pointer"
+        >
+          Hapus Jadwal
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: EDIT USER PROFILE NAME                                         -->
+  <!-- ===================================================================== -->
+  <div
+    id="user-modal"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-[#060911]/80 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="bg-[#141927] border border-[#1F273B] rounded-xl w-full max-w-sm p-6 shadow-2xl animate-modal-in">
+      <h3 class="text-base font-bold text-[#F8FAFC]">Ubah Nama Profil</h3>
+      <p class="text-xs text-[#94A3B8] mt-1">Nama profil akan ditampilkan di bilah navigasi atas.</p>
+
+      <form id="user-form" class="mt-4 space-y-4">
+        <div>
+          <label for="input-user-name" class="block text-xs font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">
+            Nama Lengkap
+          </label>
+          <input
+            id="input-user-name"
+            type="text"
+            required
+            class="w-full bg-[#0B0F19] border border-[#1F273B] focus:border-[#7873F5] focus:ring-2 focus:ring-[#7873F5]/25 rounded-lg px-3.5 py-2.5 text-sm text-[#F8FAFC] outline-none transition"
+          />
+        </div>
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            onclick="closeUserModal()"
+            class="px-4 py-2 rounded-lg text-xs sm:text-sm font-medium text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1F273B] transition cursor-pointer"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-[#7873F5] hover:bg-[#6761EE] text-[#0B0F19] transition cursor-pointer"
+          >
+            Simpan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- EXIT SCREEN OVERLAY (C++ Menu 5: Exit -> "Program selesai...")        -->
+  <!-- ===================================================================== -->
+  <div
+    id="exit-overlay"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-[#0B0F19]"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="bg-[#141927] border border-[#1F273B] rounded-xl w-full max-w-md p-8 text-center shadow-2xl animate-modal-in">
+      <div class="inline-flex items-baseline text-2xl font-bold tracking-tight text-[#F8FAFC] mb-5">
+        <span>Jadwal</span><span class="text-[#7873F5]">.</span>
+      </div>
+
+      <div class="w-12 h-12 rounded-full bg-[#10B981]/10 border border-[#10B981]/25 text-[#10B981] flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      </div>
+
+      <h2 class="text-xl font-bold text-[#F8FAFC]">Program selesai. Terima kasih!</h2>
+      <p class="text-xs sm:text-sm text-[#94A3B8] mt-2 leading-relaxed">
+        Seluruh kegiatan Anda tersimpan otomatis dan terurut rapi berdasarkan tanggal lalu prioritas.
+      </p>
+
+      <button
+        id="btn-reopen-dashboard"
+        type="button"
+        class="mt-6 w-full sm:w-auto px-6 py-2.5 rounded-lg text-sm font-bold bg-[#7873F5] hover:bg-[#6761EE] text-[#0B0F19] transition cursor-pointer"
+      >
+        Masuk Kembali
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- TOAST NOTIFICATION CONTAINER                                          -->
+  <!-- ===================================================================== -->
+  <div
+    id="toast-container"
+    aria-live="polite"
+    class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-[calc(100vw-2.5rem)]"
+  ></div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT LOGIC (Translasi Struktur & Algoritma C++ ke Web App)      -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * Kunci penyimpanan LocalStorage
+     */
+    const STORAGE_KEY_SCHEDULES = 'pengelola_jadwal_items_v2';
+    const STORAGE_KEY_INIT = 'pengelola_jadwal_init_v2';
+    const STORAGE_KEY_USER = 'pengelola_jadwal_user_v2';
+
+    /**
+     * State utama (setara vector<Jadwal> daftar_jadwal di C++)
+     */
+    let daftarJadwal = [];
+    let deleteTargetId = null;
+    let currentModalMode = 'add'; // 'add' | 'edit'
+    let editingOriginalItem = null;
+
+    /**
+     * Konstanta nama hari & bulan Bahasa Indonesia
+     */
+    const HARI_FULL = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const HARI_SHORT = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    const BULAN_FULL = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    const BULAN_SHORT = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+
+    /**
+     * Fungsi pembanding C++: bool bandingkanJadwal(const Jadwal &a, const Jadwal &b)
+     * Mengurutkan berdasarkan tanggal (YYYY-MM-DD) menaik, lalu prioritas menaik.
+     */
+    function bandingkanJadwal(a, b) {
+      if (a.tanggal !== b.tanggal) {
+        return a.tanggal.localeCompare(b.tanggal);
+      }
+      return a.prioritas.localeCompare(b.prioritas);
+    }
+
+    /**
+     * Format tanggal lengkap Bahasa Indonesia untuk pill header (contoh: "Kamis, 19 November 2026")
+     */
+    function formatTanggalLengkap(dateObj) {
+      if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) {
+        return 'Kamis, 19 November 2026';
+      }
+      const hari = HARI_FULL[dateObj.getDay()];
+      const tanggal = dateObj.getDate();
+      const bulan = BULAN_FULL[dateObj.getMonth()];
+      const tahun = dateObj.getFullYear();
+      return `${hari}, ${tanggal} ${bulan} ${tahun}`;
+    }
+
+    /**
+     * Format string YYYY-MM-DD menjadi tanggal singkat kartu (contoh: "Kam, 3 Des 2026")
+     */
+    function formatTanggalKartu(yyyyMmDd) {
+      if (!yyyyMmDd || !yyyyMmDd.includes('-')) return yyyyMmDd;
+      const [year, month, day] = yyyyMmDd.split('-').map(Number);
+      const localDate = new Date(year, month - 1, day);
+      if (Number.isNaN(localDate.getTime())) return yyyyMmDd;
+
+      const hariShort = HARI_SHORT[localDate.getDay()];
+      const bulanShort = BULAN_SHORT[month - 1];
+      return `${hariShort}, ${day} ${bulanShort} ${year}`;
+    }
+
+    /**
+     * Escape karakter HTML untuk keamanan rendering string pengguna
+     */
+    function escapeHTML(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    /**
+     * Menampilkan notifikasi toast di pojok kanan bawah
+     */
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+
+      const accentClass =
+        type === 'danger'
+          ? 'text-[#EF4444] bg-[#EF4444]/10 border-[#EF4444]/30'
+          : 'text-[#10B981] bg-[#10B981]/10 border-[#10B981]/30';
+
+      toast.className =
+        'pointer-events-auto flex items-center gap-3 bg-[#141927] border border-[#1F273B] text-[#F8FAFC] px-4 py-3 rounded-xl shadow-xl animate-modal-in';
+
+      toast.innerHTML = `
+        <span class="w-6 h-6 rounded-full border ${accentClass} flex items-center justify-center shrink-0">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </span>
+        <span class="text-xs sm:text-sm font-medium">${escapeHTML(message)}</span>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(6px)';
+        toast.style.transition = 'all 0.2s ease';
+        setTimeout(() => toast.remove(), 220);
+      }, 2800);
+    }
+
+    /**
+     * Memuat data dari localStorage atau menginisialisasi data bawaan referensi saat kunjungan pertama
+     */
+    function loadInitialData() {
+      try {
+        const savedUser = localStorage.getItem(STORAGE_KEY_USER);
+        if (savedUser) {
+          document.getElementById('display-user-name').textContent = savedUser;
+        }
+
+        const isInitialized = localStorage.getItem(STORAGE_KEY_INIT);
+        const rawSchedules = localStorage.getItem(STORAGE_KEY_SCHEDULES);
+
+        if (!isInitialized) {
+          daftarJadwal = [
+            {
+              id: 'jadwal-default-1',
+              nama_kegiatan: 'Rapat 1',
+              tanggal: '2026-12-03',
+              waktu: '10:30',
+              prioritas: '1 - Tinggi',
+            },
+          ];
+          saveSchedules();
+          localStorage.setItem(STORAGE_KEY_INIT, 'true');
+        } else if (rawSchedules) {
+          const parsed = JSON.parse(rawSchedules);
+          daftarJadwal = Array.isArray(parsed) ? parsed : [];
+        } else {
+          daftarJadwal = [];
+        }
+      } catch (err) {
+        console.error('Gagal membaca localStorage:', err);
+        daftarJadwal = [];
+      }
+    }
+
+    /**
+     * Mengurutkan daftar_jadwal dengan bandingkanJadwal lalu menyimpannya ke localStorage
+     */
+    function saveSchedules() {
+      daftarJadwal.sort(bandingkanJadwal);
+      try {
+        localStorage.setItem(STORAGE_KEY_SCHEDULES, JSON.stringify(daftarJadwal));
+        localStorage.setItem(STORAGE_KEY_INIT, 'true');
+      } catch (err) {
+        console.error('Gagal menyimpan ke localStorage:', err);
+      }
+    }
+
+    /**
+     * Mengembalikan styling lencana pill prioritas pada kartu kegiatan
+     */
+    function getPriorityBadgeStyle(prioritas) {
+      if (prioritas.startsWith('1')) {
+        return {
+          pillClass: 'bg-[#FFFFFF] text-[#DC2626]',
+          dotClass: 'bg-[#EF4444]',
+        };
+      }
+      if (prioritas.startsWith('2')) {
+        return {
+          pillClass: 'bg-[#FFFBEB] text-[#B45309]',
+          dotClass: 'bg-[#F59E0B]',
+        };
+      }
+      return {
+        pillClass: 'bg-[#ECFDF5] text-[#047857]',
+        dotClass: 'bg-[#10B981]',
+      };
+    }
+
+    /**
+     * Merender ulang 4 kartu metrik ringkasan dan daftar kartu jadwal (C++ Menu 2: View Schedule)
+     */
+    function renderDashboard() {
+      // Pastikan urutan selalu mengikuti fungsi C++ bandingkanJadwal
+      daftarJadwal.sort(bandingkanJadwal);
+
+      const total = daftarJadwal.length;
+      const highCount = daftarJadwal.filter((item) => item.prioritas.startsWith('1')).length;
+      const mediumCount = daftarJadwal.filter((item) => item.prioritas.startsWith('2')).length;
+      const lowCount = daftarJadwal.filter((item) => item.prioritas.startsWith('3')).length;
+
+      document.getElementById('metric-total').textContent = total;
+      document.getElementById('metric-high').textContent = highCount;
+      document.getElementById('metric-medium').textContent = mediumCount;
+      document.getElementById('metric-low').textContent = lowCount;
+      document.getElementById('schedule-count-label').textContent = `${total} kegiatan`;
+
+      const gridEl = document.getElementById('schedule-grid');
+      const emptyEl = document.getElementById('empty-state');
+
+      if (total === 0) {
+        gridEl.innerHTML = '';
+        gridEl.classList.add('hidden');
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      emptyEl.classList.add('hidden');
+      gridEl.classList.remove('hidden');
+
+      gridEl.innerHTML = daftarJadwal
+        .map((item) => {
+          const badge = getPriorityBadgeStyle(item.prioritas);
+          const formattedDate = formatTanggalKartu(item.tanggal);
+
+          return `
+            <article class="bg-[#141927] border border-[#1F273B] hover:border-[#2E3A59] rounded-xl p-5 flex flex-col justify-between transition-all duration-200 animate-card-in">
+              <div>
+                <!-- Baris Atas: Nama Kegiatan & Pill Prioritas -->
+                <div class="flex items-start justify-between gap-3 mb-4">
+                  <h3 class="text-[15px] font-bold text-[#F8FAFC] leading-snug break-words">
+                    ${escapeHTML(item.nama_kegiatan)}
+                  </h3>
+                  <span class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${badge.pillClass}">
+                    <span class="w-1.5 h-1.5 rounded-full ${badge.dotClass}"></span>
+                    <span>${escapeHTML(item.prioritas)}</span>
+                  </span>
+                </div>
+
+                <!-- Baris Tengah: Tanggal & Waktu -->
+                <div class="space-y-2 text-[13px] text-[#94A3B8] mb-5">
+                  <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-[#7873F5] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    <span>${escapeHTML(formattedDate)}</span>
+                  </div>
+
+                  <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-[#7873F5] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span>${escapeHTML(item.waktu)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pembatas Horizontal & Tombol Aksi Terdistribusi Rata -->
+              <div class="border-t border-[#1F273B] pt-3.5 mt-auto grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onclick="openScheduleModal('edit', '${escapeHTML(item.id)}')"
+                  class="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-[#94A3B8] hover:text-[#F8FAFC] transition-colors py-1.5 px-2 rounded-lg hover:bg-[#1F273B]/70 cursor-pointer"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                  </svg>
+                  <span>Edit</span>
+                </button>
+
+                <button
+                  type="button"
+                  onclick="openDeleteModal('${escapeHTML(item.id)}')"
+                  class="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-[#94A3B8] hover:text-[#EF4444] transition-colors py-1.5 px-2 rounded-lg hover:bg-[#EF4444]/10 cursor-pointer"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                  <span>Hapus</span>
+                </button>
+              </div>
+            </article>
+          `;
+        })
+        .join('');
+    }
+
+    /**
+     * Memilih tombol prioritas pada form modal
+     */
+    function selectPriority(priorityValue) {
+      document.getElementById('input-prioritas').value = priorityValue;
+      const buttons = document.querySelectorAll('.priority-option');
+
+      buttons.forEach((btn) => {
+        const isSelected = btn.getAttribute('data-priority') === priorityValue;
+        if (isSelected) {
+          btn.className =
+            'priority-option py-2.5 px-2 rounded-lg border border-[#7873F5] bg-[#7873F5]/15 text-[#F8FAFC] text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer';
+        } else {
+          btn.className =
+            'priority-option py-2.5 px-2 rounded-lg border border-[#1F273B] bg-[#0B0F19] text-[#94A3B8] hover:text-[#F8FAFC] hover:border-[#2E3A59] text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer';
+        }
+      });
+    }
+
+    /**
+     * Membuka modal Tambah Jadwal (C++ Menu 1) atau Edit Jadwal (C++ Menu 3)
+     */
+    function openScheduleModal(mode, scheduleId = null) {
+      currentModalMode = mode;
+      editingOriginalItem = null;
+
+      const modal = document.getElementById('schedule-modal');
+      const titleEl = document.getElementById('modal-title');
+      const subtitleEl = document.getElementById('modal-subtitle');
+      const submitBtn = document.getElementById('btn-submit-schedule');
+
+      document.getElementById('error-nama').classList.add('hidden');
+      document.getElementById('error-tanggal').classList.add('hidden');
+      document.getElementById('error-waktu').classList.add('hidden');
+
+      if (mode === 'edit' && scheduleId) {
+        const target = daftarJadwal.find((item) => item.id === scheduleId);
+        if (!target) return;
+
+        editingOriginalItem = { ...target };
+        titleEl.textContent = 'Edit Jadwal';
+        subtitleEl.textContent = 'Ubah detail kegiatan atau biarkan nilai lama tetap terisi.';
+        submitBtn.textContent = 'Simpan Perubahan';
+
+        document.getElementById('form-schedule-id').value = target.id;
+        document.getElementById('input-nama').value = target.nama_kegiatan;
+        document.getElementById('input-tanggal').value = target.tanggal;
+        document.getElementById('input-waktu').value = target.waktu;
+        selectPriority(target.prioritas);
+      } else {
+        titleEl.textContent = 'Tambah Jadwal';
+        subtitleEl.textContent = 'Daftar otomatis diurutkan berdasarkan tanggal lalu prioritas.';
+        submitBtn.textContent = 'Simpan Jadwal';
+
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+
+        document.getElementById('form-schedule-id').value = '';
+        document.getElementById('input-nama').value = '';
+        document.getElementById('input-tanggal').value = `${yyyy}-${mm}-${dd}`;
+        document.getElementById('input-waktu').value = '09:00';
+        selectPriority('1 - Tinggi');
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => document.getElementById('input-nama').focus(), 50);
+    }
+
+    function closeScheduleModal() {
+      const modal = document.getElementById('schedule-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    /**
+     * Membuka & menutup modal konfirmasi hapus (C++ Menu 4: Delete Schedule)
+     */
+    function openDeleteModal(scheduleId) {
+      const target = daftarJadwal.find((item) => item.id === scheduleId);
+      if (!target) return;
+
+      deleteTargetId = scheduleId;
+      document.getElementById('delete-target-name').textContent = `"${target.nama_kegiatan}"`;
+
+      const modal = document.getElementById('delete-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeDeleteModal() {
+      deleteTargetId = null;
+      const modal = document.getElementById('delete-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    /**
+     * Membuka & menutup modal edit nama pengguna
+     */
+    function openUserModal() {
+      const currentName = document.getElementById('display-user-name').textContent.trim();
+      document.getElementById('input-user-name').value = currentName;
+
+      const modal = document.getElementById('user-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => document.getElementById('input-user-name').focus(), 50);
+    }
+
+    function closeUserModal() {
+      const modal = document.getElementById('user-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    /**
+     * Inisialisasi seluruh interaksi saat DOM siap
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set pill tanggal hari ini dalam Bahasa Indonesia
+      document.getElementById('current-date-pill').textContent = formatTanggalLengkap(new Date());
+
+      // Muat data awal dan render tampilan
+      loadInitialData();
+      renderDashboard();
+
+      // Buka modal Tambah Jadwal
+      document.getElementById('btn-open-add').addEventListener('click', () => {
+        openScheduleModal('add');
+      });
+
+      // Simpan Tambah / Edit Jadwal
+      document.getElementById('schedule-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const rawNama = document.getElementById('input-nama').value.trim();
+        const rawTanggal = document.getElementById('input-tanggal').value.trim();
+        const rawWaktu = document.getElementById('input-waktu').value.trim();
+        const prioritas = document.getElementById('input-prioritas').value;
+
+        if (currentModalMode === 'edit' && editingOriginalItem) {
+          // Mengikuti perilaku C++ Menu 3: jika dikosongkan, pertahankan nilai sebelumnya
+          const finalNama = rawNama || editingOriginalItem.nama_kegiatan;
+          const finalTanggal = rawTanggal || editingOriginalItem.tanggal;
+          const finalWaktu = rawWaktu || editingOriginalItem.waktu;
+          const finalPrioritas = prioritas || editingOriginalItem.prioritas;
+
+          const id = document.getElementById('form-schedule-id').value;
+          const idx = daftarJadwal.findIndex((item) => item.id === id);
+          if (idx !== -1) {
+            daftarJadwal[idx] = {
+              ...daftarJadwal[idx],
+              nama_kegiatan: finalNama,
+              tanggal: finalTanggal,
+              waktu: finalWaktu,
+              prioritas: finalPrioritas,
+            };
+          }
+          saveSchedules();
+          renderDashboard();
+          closeScheduleModal();
+          showToast('Perubahan berhasil disimpan!');
+          return;
+        }
+
+        // Validasi untuk mode Tambah Jadwal (C++ Menu 1)
+        let isValid = true;
+        if (!rawNama) {
+          document.getElementById('error-nama').classList.remove('hidden');
+          isValid = false;
+        } else {
+          document.getElementById('error-nama').classList.add('hidden');
+        }
+
+        if (!rawTanggal) {
+          document.getElementById('error-tanggal').classList.remove('hidden');
+          isValid = false;
+        } else {
+          document.getElementById('error-tanggal').classList.add('hidden');
+        }
+
+        if (!rawWaktu) {
+          document.getElementById('error-waktu').classList.remove('hidden');
+          isValid = false;
+        } else {
+          document.getElementById('error-waktu').classList.add('hidden');
+        }
+
+        if (!isValid) return;
+
+        daftarJadwal.push({
+          id: `jadwal-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          nama_kegiatan: rawNama,
+          tanggal: rawTanggal,
+          waktu: rawWaktu,
+          prioritas,
+        });
+
+        saveSchedules();
+        renderDashboard();
+        closeScheduleModal();
+        showToast('Jadwal berhasil disimpan!');
+      });
+
+      // Konfirmasi Hapus Jadwal (C++ Menu 4)
+      document.getElementById('btn-confirm-delete').addEventListener('click', () => {
+        if (!deleteTargetId) return;
+        daftarJadwal = daftarJadwal.filter((item) => item.id !== deleteTargetId);
+        saveSchedules();
+        renderDashboard();
+        closeDeleteModal();
+        showToast('Jadwal berhasil dihapus!', 'danger');
+      });
+
+      // Ubah Nama Profil Pengguna
+      document.getElementById('btn-edit-user').addEventListener('click', openUserModal);
+      document.getElementById('user-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newName = document.getElementById('input-user-name').value.trim();
+        if (!newName) return;
+
+        document.getElementById('display-user-name').textContent = newName;
+        try {
+          localStorage.setItem(STORAGE_KEY_USER, newName);
+        } catch (err) {
+          console.error('Gagal menyimpan nama pengguna:', err);
+        }
+        closeUserModal();
+        showToast('Nama profil berhasil diperbarui!');
+      });
+
+      // Tombol Keluar (C++ Menu 5: Exit)
+      document.getElementById('btn-exit').addEventListener('click', () => {
+        const overlay = document.getElementById('exit-overlay');
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+      });
+
+      // Tombol Masuk Kembali
+      document.getElementById('btn-reopen-dashboard').addEventListener('click', () => {
+        const overlay = document.getElementById('exit-overlay');
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+      });
+
+      // Tutup modal jika mengklik backdrop di luar kotak dialog
+      ['schedule-modal', 'delete-modal', 'user-modal'].forEach((modalId) => {
+        const el = document.getElementById(modalId);
+        el.addEventListener('click', (e) => {
+          if (e.target === el) {
+            if (modalId === 'schedule-modal') closeScheduleModal();
+            if (modalId === 'delete-modal') closeDeleteModal();
+            if (modalId === 'user-modal') closeUserModal();
+          }
+        });
+      });
+
+      // Tutup modal dengan tombol Escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeScheduleModal();
+          closeDeleteModal();
+          closeUserModal();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
